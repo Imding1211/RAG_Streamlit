@@ -1,8 +1,9 @@
 
 from database_controller import populate_database, clear_database, calculate_existing_ids
 from langchain_community.embeddings.ollama import OllamaEmbeddings
-from langchain_community.llms.ollama import Ollama
 from query_controller import generate_results, generate_prompt
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_community.llms.ollama import Ollama
 from langchain_chroma import Chroma
 from typing import Dict, Generator
 import streamlit as st
@@ -31,13 +32,22 @@ if "messages" not in st.session_state:
 
 #=============================================================================#
 
-PROMPT_TEMPLATE = """
+QUERY_PROMPT_TEMPLATE = """
 
 {context}
 
 ---
 
 根據以上資料用繁體中文回答問題: {question}
+"""
+
+CMD_PROMPT_TEMPLATE = """
+
+你是管理資料庫得AI，你收到{mode}資料庫的命令，
+
+{mode}資料數量為: {doc_num}
+
+請根據以上資訊簡短使用一句繁體中文回覆，
 """
 
 #=============================================================================#
@@ -51,67 +61,47 @@ def ollama_generator(model_name: str, messages: Dict) -> Generator:
 
 #-----------------------------------------------------------------------------#
 
-def update_database():
-
-    st.session_state.messages.append({"role": "assistant", "content": "更新資料庫"})
+def update_db():
 
     existing_ids = calculate_existing_ids(DATABASE)
-    st.session_state.messages.append({"role": "assistant", "content": f"Number of existing documents in DB: {len(existing_ids)}"})
 
     new_chunks = populate_database(EMBEDDING_MODEL, DATA_PATH, DATABASE)
 
-    if len(new_chunks):
-        st.session_state.messages.append({"role": "assistant", "content": f"Adding new documents: {len(new_chunks)}"})
+    prompt = ChatPromptTemplate.from_template(CMD_PROMPT_TEMPLATE)
+    prompt = prompt.format(mode="更新", doc_num=len(new_chunks))
 
-    else:
-        st.session_state.messages.append({"role": "assistant", "content": "No new documents to add"})
+    return prompt
 
 #-----------------------------------------------------------------------------#
 
-def reset_database():
-
-    st.session_state.messages.append({"role": "assistant", "content": "重置資料庫"})
+def reset_db():
 
     delete_ids = calculate_existing_ids(DATABASE)
     clear_database(delete_ids, DATABASE)
 
     existing_ids = calculate_existing_ids(DATABASE)
-    st.session_state.messages.append({"role": "assistant", "content": f"Number of existing documents in DB: {len(existing_ids)}"})
-
     new_chunks = populate_database(EMBEDDING_MODEL, DATA_PATH, DATABASE)
 
-    if len(new_chunks):
-        st.session_state.messages.append({"role": "assistant", "content": f"Adding new documents: {len(new_chunks)}"})
+    prompt = ChatPromptTemplate.from_template(CMD_PROMPT_TEMPLATE)
+    prompt = prompt.format(mode="重設", doc_num=len(new_chunks))
 
-    else:
-        st.session_state.messages.append({"role": "assistant", "content": "No new documents to add"})
+    return prompt
 
 #-----------------------------------------------------------------------------#
 
-def clear_database():
-
-    st.session_state.messages.append({"role": "assistant", "content": "清空資料庫"})
+def clear_db():
 
     delete_ids = calculate_existing_ids(DATABASE)
     clear_database(delete_ids, DATABASE)
 
-    st.session_state.messages.append({"role": "assistant", "content": "Clearing Database"})
+    prompt = ChatPromptTemplate.from_template(CMD_PROMPT_TEMPLATE)
+    prompt = prompt.format(mode="清除", doc_num=len(list(delete_ids)))
+
+    return prompt
 
 #=============================================================================#
 
 st.title("RAG demo")
-
-#-----------------------------------------------------------------------------#
-
-with st.sidebar:
-    if st.button("更新資料庫"):
-        update_database()
-        
-    if st.button("重置資料庫"):
-        reset_database()
-        
-    if st.button("清空資料庫"):
-        clear_database()
 
 #-----------------------------------------------------------------------------#
 
@@ -131,8 +121,18 @@ if question := st.chat_input("How could I help you?"):
     with st.chat_message("user", avatar="🦖"):
         st.markdown(question)
 
-    results = generate_results(question, QUERY_NUM, DATABASE)
-    prompt  = generate_prompt(question, results, PROMPT_TEMPLATE)
+    if "更新資料庫" in question:
+        prompt = update_db()
+
+    elif "重設資料庫" in question:
+        prompt = reset_db()
+
+    elif "清除資料庫" in question:
+        prompt = clear_db()
+
+    else:
+        results = generate_results(question, QUERY_NUM, DATABASE)
+        prompt  = generate_prompt(question, results, QUERY_PROMPT_TEMPLATE)
 
     st.session_state.messages.append({"role": "user", "content": prompt})
 
