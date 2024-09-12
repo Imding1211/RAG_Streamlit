@@ -1,5 +1,7 @@
 
 from langchain_core.prompts import ChatPromptTemplate
+from typing import Dict, Generator
+import ollama
 
 #=============================================================================#
 
@@ -10,18 +12,15 @@ class QueryController():
         self.llm_model = llm_model
         self.query_num = query_num
 
-#-----------------------------------------------------------------------------#
+        self.prompt_templt = """
 
-    def query_rag(self, query_text, prompt_template):
-        
-        results  = self.generate_results(query_text)
-        
-        prompt   = self.generate_prompt(query_text, results, prompt_template)
-        
-        response = self.generate_response(prompt, results)
-        
-        return response
+        {context}
 
+        ---
+
+        根據以上資料用繁體中文回答問題: {question}
+        """
+        
 #-----------------------------------------------------------------------------#
 
     def generate_results(self, query_text):
@@ -33,27 +32,23 @@ class QueryController():
 
 #-----------------------------------------------------------------------------#
 
-    def generate_prompt(self, query_text, query_results, prompt_template):
+    def generate_prompt(self, query_text, query_results):
         
         # 構建上下文文本
         context_text    = "\n\n---\n\n".join([doc.page_content for doc, _score in query_results])
-        prompt_template = ChatPromptTemplate.from_template(prompt_template)
+        prompt_template = ChatPromptTemplate.from_template(self.prompt_templt)
         prompt          = prompt_template.format(context=context_text, question=query_text)
 
         return prompt
 
 #-----------------------------------------------------------------------------#
 
-    def generate_response(self, prompt, query_results):
-
-        # 生成回覆
-        response_text = llm_model.invoke(prompt)
-
-        # 格式化並輸出回應
-        sources  = [doc.metadata.get("id", None) for doc, _score in query_results]
-        response = f"Response: {response_text}"
-
-        return response
+    def ollama_generator(self, messages: Dict) -> Generator:
+        
+        stream = ollama.chat(model=self.llm_model, messages=messages, stream=True)
+        
+        for chunk in stream:
+            yield chunk['message']['content']
 
 
 
