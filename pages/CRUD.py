@@ -1,46 +1,103 @@
 
 from langchain_community.embeddings.ollama import OllamaEmbeddings
-from langchain_community.llms.ollama import Ollama
+from database_controller import DatabaseController
+from langchain_core.documents import Document
 from langchain_chroma import Chroma
 import streamlit as st
-import pandas as pd
 
 #=============================================================================#
 
-LLM_MODEL_NAME       = "gemma2:2b"
-EMBEDDING_MODEL_NAME = "all-minilm"
-
-QUERY_NUM       = 5
-DATA_PATH       = "data"
+EMBEDDING_MODEL = "all-minilm"
 CHROMA_PATH     = "chroma"
+DATA_PATH       = "data"
 
-LLM_MODEL       = Ollama(model=LLM_MODEL_NAME)
-EMBEDDING_MODEL = OllamaEmbeddings(model=EMBEDDING_MODEL_NAME)
+#=============================================================================#
 
 # 初始化Chroma向量存儲
 DATABASE = Chroma(
     persist_directory  = CHROMA_PATH, 
-    embedding_function = EMBEDDING_MODEL
+    embedding_function = OllamaEmbeddings(model=EMBEDDING_MODEL)
     )
+
+DatabaseController = DatabaseController(DATABASE, DATA_PATH)
+
+df = DatabaseController.database_to_dataframes()
+
+#=============================================================================#
+
+column_configuration = {
+    "source": st.column_config.TextColumn(
+        "Source", 
+        help="The name of the source", 
+        max_chars=100, 
+        width="small"
+    ),
+    "page": st.column_config.TextColumn(
+        "Page", 
+        help="The page of the source", 
+        max_chars=100, 
+        width="small"
+    ),
+    "documents": st.column_config.TextColumn(
+        "Content", 
+        help="The content of the source",  
+        width="medium"
+    ),
+}
 
 st.set_page_config(layout="wide")
 
 #=============================================================================#
 
-def database_to_dataframes(database):
+st.header("All Data")
 
-    data = database.get()
+event = st.dataframe(
+    df[['source', 'page', 'documents']],
+    column_config=column_configuration,
+    use_container_width=True,
+    hide_index=True,
+    on_select="rerun",
+    selection_mode="multi-row",
+)
 
-    df = pd.DataFrame(columns=['ids', 'documents', 'page', 'source'])
+st.header("Selected Data")
 
-    for index, (ids, documents, metadatas) in enumerate(zip(data["ids"], data["documents"], data["metadatas"])):
-        df.loc[index] = [ids, documents, metadatas['page'], metadatas['source']]
+col1, col2 = st.columns([9,1])
 
-    return df
+select_id = event.selection.rows
 
-#=============================================================================#
+edited_df = col1.data_editor(
+    df.iloc[select_id],
+    disabled=["ids", "source", "page"],
+    use_container_width=True,
+    hide_index=True,
+)
 
-df = database_to_dataframes(DATABASE)
+if col2.button('Delete'):
+   delete_ids = df.loc[select_id, ['ids']]
+   delete_ids = delete_ids['ids'].values.tolist()
 
-st.dataframe(df)
+   DatabaseController.clear_database(delete_ids)
+   
+   st.rerun()
 
+if col2.button('Update'):
+
+   update_documents = []
+   update_ids       = []
+
+   for index, row in edited_df.iterrows():
+      update_document = Document(
+        page_content=row['documents'], 
+        metadata={
+        'id': row['id'], 
+        'page': row['page'],
+        'source': row['source']
+        })
+
+      update_ids.append(row['ids'])
+      update_documents.append(update_document)
+
+   DatabaseController.update_documents(update_ids, update_documents)
+
+   st.rerun()

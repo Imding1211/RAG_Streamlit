@@ -3,6 +3,8 @@ from langchain_community.document_loaders import PyPDFDirectoryLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.documents import Document
+import pandas as pd
+import uuid
 
 #=============================================================================#
 
@@ -116,7 +118,7 @@ class DatabaseController():
                 new_chunks.append(chunk)
 
         if len(new_chunks):
-            new_chunk_ids = [chunk.metadata["id"] for chunk in new_chunks]
+            new_chunk_ids = [str(uuid.uuid4()) for _ in range(len(new_chunks))]
             self.database.add_documents(new_chunks, ids=new_chunk_ids)
 
         return new_chunks
@@ -149,7 +151,7 @@ class DatabaseController():
 
         prompt = ChatPromptTemplate.from_template(self.prompt_templt)
 
-        prompt = prompt.format(mode="重設", doc_num=len(new_chunks))
+        prompt = prompt.format(mode="重置", doc_num=len(new_chunks))
 
         return prompt
 
@@ -167,5 +169,23 @@ class DatabaseController():
 
         return prompt
 
+#-----------------------------------------------------------------------------#
+
+    def database_to_dataframes(self):
+
+        data = self.database.get()
+
+        df = pd.DataFrame(columns=['ids', 'documents', 'id', 'page', 'source'])
+
+        for index, (ids, documents, metadatas) in enumerate(zip(data["ids"], data["documents"], data["metadatas"])):
+            df.loc[index] = [ids, documents, metadatas['id'], metadatas['page'], metadatas['source'].split('/')[-1]]
+
+        return df
+
+#-----------------------------------------------------------------------------#
+
+    def update_documents(self, update_ids, update_documents):
+
+        self.database.update_documents(ids=update_ids, documents=update_documents)
 
 

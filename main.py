@@ -1,12 +1,9 @@
 
+from langchain_community.embeddings.ollama import OllamaEmbeddings
 from database_controller import DatabaseController
 from query_controller import QueryController
-
-from langchain_community.embeddings.ollama import OllamaEmbeddings
 from langchain_chroma import Chroma
-
 import streamlit as st
-
 
 #=============================================================================#
 
@@ -55,10 +52,15 @@ for message in st.session_state.messages[1:]:
 
 if question := st.chat_input("How could I help you?"):
 
+    with st.chat_message("user", avatar="🦖"):
+        st.markdown(question)
+
+#-----------------------------------------------------------------------------#
+
     if "更新資料庫" in question:
         prompt = DatabaseController.update_db()
 
-    elif "重設資料庫" in question:
+    elif "重置資料庫" in question:
         prompt = DatabaseController.reset_db()
 
     elif "清除資料庫" in question:
@@ -71,9 +73,6 @@ if question := st.chat_input("How could I help you?"):
     st.session_state.messages.append({"role": "user", "content": prompt})
 
 #-----------------------------------------------------------------------------#
-
-    with st.chat_message("user", avatar="🦖"):
-        st.markdown(question)
 
     with st.chat_message("assistant", avatar="🤖"):
 
