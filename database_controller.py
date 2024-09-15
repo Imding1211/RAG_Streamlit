@@ -14,14 +14,6 @@ class DatabaseController():
         self.database  = database
         self.data_path = data_path
 
-        self.prompt_templt = """
-        你是資料庫的管理員，你收到{mode}資料庫的命令，
-
-        {mode}資料數量為: {doc_num}
-
-        請根據以上資訊簡短使用一句繁體中文回覆。
-        """
-
 #-----------------------------------------------------------------------------#
 
     def populate_database(self):
@@ -131,12 +123,6 @@ class DatabaseController():
 
         new_chunks = self.populate_database()
 
-        prompt = ChatPromptTemplate.from_template(self.prompt_templt)
-
-        prompt = prompt.format(mode="更新", doc_num=len(new_chunks))
-
-        return prompt
-
 #-----------------------------------------------------------------------------#
 
     def reset_db(self):
@@ -149,12 +135,6 @@ class DatabaseController():
 
         new_chunks = self.populate_database()
 
-        prompt = ChatPromptTemplate.from_template(self.prompt_templt)
-
-        prompt = prompt.format(mode="重置", doc_num=len(new_chunks))
-
-        return prompt
-
 #-----------------------------------------------------------------------------#
 
     def clear_db(self):
@@ -162,12 +142,6 @@ class DatabaseController():
         delete_ids = self.calculate_existing_ids()
 
         self.clear_database(delete_ids)
-
-        prompt = ChatPromptTemplate.from_template(self.prompt_templt)
-
-        prompt = prompt.format(mode="清除", doc_num=len(list(delete_ids)))
-
-        return prompt
 
 #-----------------------------------------------------------------------------#
 

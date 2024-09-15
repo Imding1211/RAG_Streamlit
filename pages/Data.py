@@ -14,12 +14,12 @@ DATA_PATH       = "data"
 #=============================================================================#
 
 # 初始化Chroma向量存儲
-DATABASE = Chroma(
+database = Chroma(
     persist_directory  = CHROMA_PATH, 
     embedding_function = OllamaEmbeddings(model=EMBEDDING_MODEL)
     )
 
-DatabaseController = DatabaseController(DATABASE, DATA_PATH)
+DatabaseController = DatabaseController(database, DATA_PATH)
 
 df = DatabaseController.database_to_dataframes()
 
@@ -51,7 +51,9 @@ st.set_page_config(layout="wide")
 
 st.header("All Data")
 
-event = st.dataframe(
+col1, col2 = st.columns([9,1])
+
+event = col1.dataframe(
     df[['source', 'page', 'documents']],
     column_config=column_configuration,
     use_container_width=True,
@@ -59,6 +61,20 @@ event = st.dataframe(
     on_select="rerun",
     selection_mode="multi-row",
 )
+
+if col2.button("更新"):
+    DatabaseController.update_db()
+    st.rerun()
+
+if col2.button("重置"):
+    DatabaseController.reset_db()
+    st.rerun()
+
+if col2.button("清除"):
+    DatabaseController.clear_db()
+    st.rerun()
+
+#-----------------------------------------------------------------------------#
 
 st.header("Selected Data")
 
@@ -73,7 +89,8 @@ edited_df = col1.data_editor(
     hide_index=True,
 )
 
-if col2.button('Delete'):
+if col2.button('刪除選取資料'):
+    
    delete_ids = df.loc[select_id, ['ids']]
    delete_ids = delete_ids['ids'].values.tolist()
 
@@ -81,7 +98,7 @@ if col2.button('Delete'):
    
    st.rerun()
 
-if col2.button('Update'):
+if col2.button('更新選取資料'):
 
    update_documents = []
    update_ids       = []
