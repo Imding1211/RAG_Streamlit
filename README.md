@@ -61,7 +61,7 @@ To get a local copy up and running, follow these simple steps.
 
    If you use Docker to build it, all subsequent commands related to Ollama need to be prefixed with the following command.
    ```
-   docker exec -it <container name> ollama <command>
+   docker exec -it <container name> <command>
    ```
    Where `container name` should be replaced with your container's name.
 
