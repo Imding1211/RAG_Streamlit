@@ -66,7 +66,9 @@ if question := st.chat_input("How could I help you?"):
 #-----------------------------------------------------------------------------#
 
     results, sources = QueryController.generate_results(question)
+
     prompt = QueryController.generate_prompt(question, results)
+    
     source_info = "資料來源: " + ", ".join(sources)
 
     st.session_state.messages.append({"role": "user", "content": prompt, "source": None})

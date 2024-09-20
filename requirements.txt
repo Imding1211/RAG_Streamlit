@@ -2,4 +2,5 @@ langchain_community
 langchain_chroma
 streamlit
 ollama
+PyPDF2
 pypdf
