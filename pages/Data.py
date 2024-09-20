@@ -32,29 +32,20 @@ column_configuration = {
         max_chars=100, 
         width="small"
     ),
-    "page": st.column_config.TextColumn(
-        "Page", 
-        help="The page of the source", 
-        max_chars=100, 
-        width="small"
-    ),
-    "documents": st.column_config.TextColumn(
-        "Content", 
-        help="The content of the source",  
-        width="medium"
-    ),
 }
 
 st.set_page_config(layout="wide")
 
 #=============================================================================#
 
-st.header("All Data")
+st.header("所有的PDF")
 
 col1, col2 = st.columns([9,1])
 
+df_source = df[['source']].drop_duplicates()
+
 event = col1.dataframe(
-    df[['source', 'page', 'documents']],
+    df_source,
     column_config=column_configuration,
     use_container_width=True,
     hide_index=True,
@@ -76,45 +67,27 @@ if col2.button("清除"):
 
 #-----------------------------------------------------------------------------#
 
-st.header("Selected Data")
+st.header("已選擇的PDF")
 
 col1, col2 = st.columns([9,1])
 
 select_id = event.selection.rows
 
+select_source = df_source.iloc[select_id]
+
+df_selected = df.merge(select_source)
+
 edited_df = col1.data_editor(
-    df.iloc[select_id],
-    disabled=["ids", "source", "page"],
+    df_selected[["source", "page", "documents"]],
+    disabled=["source", "page", "documents"],
     use_container_width=True,
     hide_index=True,
 )
 
-if col2.button('刪除選取資料'):
+if col2.button('刪除選取的PDF'):
     
-   delete_ids = df.loc[select_id, ['ids']]
-   delete_ids = delete_ids['ids'].values.tolist()
+   delete_ids = df_selected['ids'].values.tolist()
 
    DatabaseController.clear_database(delete_ids)
    
-   st.rerun()
-
-if col2.button('更新選取資料'):
-
-   update_documents = []
-   update_ids       = []
-
-   for index, row in edited_df.iterrows():
-      update_document = Document(
-        page_content=row['documents'], 
-        metadata={
-        'id': row['id'], 
-        'page': row['page'],
-        'source': row['source']
-        })
-
-      update_ids.append(row['ids'])
-      update_documents.append(update_document)
-
-   DatabaseController.update_documents(update_ids, update_documents)
-
    st.rerun()
