@@ -29,15 +29,13 @@ DatabaseController = DatabaseController(database, DATA_PATH)
 
 st.set_page_config(layout="wide")
 
-help_info = """
-👈 Hi~ 資料庫是空的，請先到Data頁面點選“更新資料庫”建立資料庫。
-"""
+help_info = "👈 Hi~ 資料庫是空的，請先到Data頁面點選上傳資料。"
 
 if "messages" not in st.session_state:
-    st.session_state.messages = [{"role": "system", "content": "使用繁體中文回答問題"}]
+    st.session_state.messages = [{"role": "system", "content": "使用繁體中文回答問題", "source": None}]
 
 if len(DatabaseController.calculate_existing_ids()) == 0:
-    st.session_state.messages.append({"role": "assistant", "content": help_info})
+    st.session_state.messages.append({"role": "assistant", "content": help_info, "source": None})
 
 #=============================================================================#
 
@@ -50,9 +48,13 @@ for message in st.session_state.messages[1:]:
     if message["role"] == "user":
         with st.chat_message("user", avatar="🦖"):
             st.markdown(message["content"])
+
     else:
         with st.chat_message("assistant", avatar="🤖"):
             st.markdown(message["content"])
+
+            if message["source"] is not None:
+                st.caption(message["source"])
 
 #-----------------------------------------------------------------------------#
 
@@ -63,10 +65,11 @@ if question := st.chat_input("How could I help you?"):
 
 #-----------------------------------------------------------------------------#
 
-    results = QueryController.generate_results(question)
-    prompt  = QueryController.generate_prompt(question, results)
+    results, sources = QueryController.generate_results(question)
+    prompt = QueryController.generate_prompt(question, results)
+    source_info = "資料來源: " + ", ".join(sources)
 
-    st.session_state.messages.append({"role": "user", "content": prompt})
+    st.session_state.messages.append({"role": "user", "content": prompt, "source": None})
 
 #-----------------------------------------------------------------------------#
 
@@ -74,6 +77,8 @@ if question := st.chat_input("How could I help you?"):
 
         response = st.write_stream(QueryController.ollama_generator(st.session_state.messages))
 
+    st.caption(source_info)
+
     st.session_state.messages[-1]["content"] = question
 
-    st.session_state.messages.append({"role": "assistant", "content": response})
+    st.session_state.messages.append({"role": "assistant", "content": response, "source": source_info})

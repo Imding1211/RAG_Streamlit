@@ -28,7 +28,9 @@ class QueryController():
         # 進行相似度搜索
         query_results = self.database.similarity_search_with_score(query_text, k=self.query_num)
 
-        return query_results
+        query_sources = list(set([doc.metadata['source'] for doc, _score in query_results]))
+
+        return query_results, query_sources
 
 #-----------------------------------------------------------------------------#
 
