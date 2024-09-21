@@ -94,6 +94,8 @@ To get a local copy up and running, follow these simple steps.
 
 * You can select the PDF on the Data page and click the update button to import the PDF into the database.
 
+![image](images/Data_page.png)
+
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 ## Contact
