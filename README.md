@@ -14,6 +14,8 @@
 
 This project demonstrates a Retrieval-Augmented Generation (RAG) system utilizing the latest Language Model (LLM) technologies. By leveraging PDF documents as the data source, ChromaDB as the database for efficient retrieval, and Gemma2 2B for language modeling, this project aims to provide high-quality, contextually relevant responses. The embedding model used is All-minilm, deployed by SBERT, ensuring robust vector representations of the data.
 
+![image](images/Home_page.png)
+
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 ## Built With
@@ -84,14 +86,14 @@ To get a local copy up and running, follow these simple steps.
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 ## Usage
-
-* Place the PDF to be read into the data folder.
    
 * Run the following command to start the UI.
    ```sh
    streamlit run Home.py
    ```
-   
+
+* You can select the PDF on the Data page and click the update button to import the PDF into the database.
+
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 ## Contact
