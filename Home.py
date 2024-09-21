@@ -11,7 +11,6 @@ LLM_MODEL       = "gemma2:2b"
 EMBEDDING_MODEL = "all-minilm"
 
 QUERY_NUM   = 5
-DATA_PATH   = "data"
 CHROMA_PATH = "chroma"
 
 #=============================================================================#
@@ -23,7 +22,7 @@ database = Chroma(
     )
 
 QueryController    = QueryController(database, LLM_MODEL, QUERY_NUM)
-DatabaseController = DatabaseController(database, DATA_PATH)
+DatabaseController = DatabaseController(database)
 
 #=============================================================================#
 

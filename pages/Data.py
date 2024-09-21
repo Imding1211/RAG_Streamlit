@@ -1,17 +1,13 @@
 
-from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.embeddings.ollama import OllamaEmbeddings
+from database_controller import DatabaseController
 from langchain_chroma import Chroma
 import streamlit as st
-import pandas as pd
-import PyPDF2
-import uuid
 
 #=============================================================================#
 
 EMBEDDING_MODEL = "all-minilm"
 CHROMA_PATH     = "chroma"
-DATA_PATH       = "data"
 
 #=============================================================================#
 
@@ -21,12 +17,7 @@ database = Chroma(
     embedding_function = OllamaEmbeddings(model=EMBEDDING_MODEL)
     )
 
-text_splitter = RecursiveCharacterTextSplitter(
-    chunk_size         = 800,   # 每塊的大小
-    chunk_overlap      = 80,    # 每塊之間的重疊部分
-    length_function    = len,   # 用於計算塊長度的函數
-    is_separator_regex = False, # 是否使用正則表達式作為分隔符
-)
+DatabaseController = DatabaseController(database)
 
 #=============================================================================#
 
@@ -82,27 +73,10 @@ files = st.file_uploader(
 col1, col2 = st.columns([9,1])
 
 if col2.button("更新"):
-
     for file in files:
+        DatabaseController.add_PDF_to_chroma(file)
 
-        pdf_reader = PyPDF2.PdfReader(file)
-
-        for page in range(len(pdf_reader.pages)):
-
-            content = pdf_reader.pages[page].extract_text()
-
-            documents = text_splitter.create_documents([content], [{"source":file.name, "page":page}])
-
-            ids = [str(uuid.uuid4()) for _ in range(len(documents))]
-
-            database.add_documents(documents, ids=ids)
-
-data = database.get()
-
-df = pd.DataFrame(columns=['ids', 'documents', 'page', 'source'])
-
-for index, (ids, documents, metadatas) in enumerate(zip(data["ids"], data["documents"], data["metadatas"])):
-    df.loc[index] = [ids, documents, metadatas['page'], metadatas['source']]
+df = DatabaseController.database_to_dataframes()
 
 df_event = df.loc[df.groupby('source')['page'].idxmax(), ['source', 'page']]
 
@@ -130,6 +104,5 @@ st.dataframe(
 
 if col2.button('刪除'):
     delete_ids = df_result['ids'].values.tolist()
-    if delete_ids:
-        database.delete(ids=delete_ids)
-        st.rerun()
+    DatabaseController.clear_database(delete_ids)
+    st.rerun()
