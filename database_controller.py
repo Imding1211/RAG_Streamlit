@@ -33,11 +33,13 @@ class DatabaseController():
 
         data = self.database.get()
 
-        df = pd.DataFrame(columns=['ids', 'documents', 'page', 'source'])
-
-        for index, (ids, documents, metadatas) in enumerate(zip(data["ids"], data["documents"], data["metadatas"])):
-            df.loc[index] = [ids, documents, metadatas['page'], metadatas['source']]
-
+        df = pd.DataFrame({
+            'ids'       : data['ids'],
+            'page'      : [meta['page'] for meta in data['metadatas']],  # 展開 metadatas 中的 page
+            'source'    : [meta['source'] for meta in data['metadatas']],  # 展開 metadatas 中的 source
+            'documents' : data['documents']
+        })
+        
         return df
 
 #-----------------------------------------------------------------------------#
