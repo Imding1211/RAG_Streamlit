@@ -31,8 +31,14 @@ event_config = {
         width="small"
     ),
     "page": st.column_config.TextColumn(
-        "頁數", 
-        help="資料頁數", 
+        "總頁數", 
+        help="資料總頁數", 
+        max_chars=100, 
+        width="small"
+    ),
+    "size": st.column_config.TextColumn(
+        "大小", 
+        help="資料大小", 
         max_chars=100, 
         width="small"
     ),
@@ -61,13 +67,13 @@ selected_config = {
 
 #=============================================================================#
 
-st.header("PDF")
+st.title("資料庫")
 
 files = st.file_uploader(
     "Upload a PDF file", 
     type="pdf", 
     accept_multiple_files=True, 
-    label_visibility="hidden"
+    label_visibility="hidden",
     )
 
 col1, col2 = st.columns([9,1])
@@ -78,7 +84,7 @@ if col2.button("更新"):
 
 df = DatabaseController.database_to_dataframes()
 
-df_event = df.loc[df.groupby('source')['page'].idxmax(), ['source', 'page']]
+df_event = df.loc[df.groupby('source')['page'].idxmax(), ['source', 'page', 'size']]
 
 event = col1.dataframe(
     df_event,
@@ -94,6 +100,8 @@ select_id = event.selection.rows
 df_selected = df_event.iloc[select_id][['source']]
 
 df_result = df.merge(df_selected, on='source')
+
+st.divider()
 
 st.dataframe(
     df_result[['source', 'page', 'documents']],

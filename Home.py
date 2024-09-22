@@ -28,17 +28,20 @@ DatabaseController = DatabaseController(database)
 
 st.set_page_config(layout="wide")
 
-help_info = "👈 Hi~ 資料庫是空的，請先到Data頁面點選上傳資料。"
-
 if "messages" not in st.session_state:
     st.session_state.messages = [{"role": "system", "content": "使用繁體中文回答問題", "source": None}]
 
-if len(DatabaseController.calculate_existing_ids()) == 0:
-    st.session_state.messages.append({"role": "assistant", "content": help_info, "source": None})
+    if len(DatabaseController.calculate_existing_ids()) == 0:
+        info = "👈 Hi~ 資料庫是空的，請先到Data頁面點選上傳資料。"
+        st.session_state.messages.append({"role": "assistant", "content": info, "source": None})
+
+    else:
+        info = "✋ Hi~ 請問想詢問什麼問題呢？"
+        st.session_state.messages.append({"role": "assistant", "content": info, "source": None})
 
 #=============================================================================#
 
-st.title("Home")
+st.title("資料查詢")
 
 #-----------------------------------------------------------------------------#
 
@@ -57,7 +60,7 @@ for message in st.session_state.messages[1:]:
 
 #-----------------------------------------------------------------------------#
 
-if question := st.chat_input("How could I help you?"):
+if question := st.chat_input("輸入問題"):
 
     with st.chat_message("user", avatar="🦖"):
         st.markdown(question)

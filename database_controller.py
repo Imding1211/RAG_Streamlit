@@ -35,11 +35,12 @@ class DatabaseController():
 
         df = pd.DataFrame({
             'ids'       : data['ids'],
-            'page'      : [meta['page'] for meta in data['metadatas']],  # 展開 metadatas 中的 page
-            'source'    : [meta['source'] for meta in data['metadatas']],  # 展開 metadatas 中的 source
+            'page'      : [meta['page'] for meta in data['metadatas']],
+            'source'    : [meta['source'] for meta in data['metadatas']],
+            'size'      : [meta['size'] for meta in data['metadatas']],
             'documents' : data['documents']
         })
-        
+
         return df
 
 #-----------------------------------------------------------------------------#
@@ -58,7 +59,9 @@ class DatabaseController():
 
             content = pdf.pages[page].extract_text()
 
-            documents = self.text_splitter.create_documents([content], [{"source":pdf.stream.name, "page":page}])
+            metadata = {"source":pdf.stream.name, "page":page, "size":pdf.stream.size}
+
+            documents = self.text_splitter.create_documents([content], [metadata])
 
             ids = [str(uuid.uuid4()) for _ in range(len(documents))]
 
