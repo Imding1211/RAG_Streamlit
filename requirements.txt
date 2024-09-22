@@ -3,4 +3,3 @@ langchain_chroma
 streamlit
 ollama
 PyPDF2
-pypdf
