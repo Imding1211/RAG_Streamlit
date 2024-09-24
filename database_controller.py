@@ -59,7 +59,7 @@ class DatabaseController():
             
             content = pdf.pages[page].extract_text()
 
-            metadata = {"source":pdf.stream.name, "page":page, "size":pdf.stream.size}
+            metadata = {"source":pdf.stream.name, "page":page+1, "size":pdf.stream.size}
 
             documents = self.text_splitter.create_documents([content], [metadata])
 
