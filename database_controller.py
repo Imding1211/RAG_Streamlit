@@ -56,7 +56,7 @@ class DatabaseController():
         pdf = PyPDF2.PdfReader(file)
 
         for page in range(len(pdf.pages)):
-
+            
             content = pdf.pages[page].extract_text()
 
             metadata = {"source":pdf.stream.name, "page":page, "size":pdf.stream.size}
@@ -65,4 +65,5 @@ class DatabaseController():
 
             ids = [str(uuid.uuid4()) for _ in range(len(documents))]
 
-            self.database.add_documents(documents, ids=ids)
+            if len(documents):
+                self.database.add_documents(documents, ids=ids)
