@@ -36,17 +36,17 @@ To get a local copy up and running, follow these simple steps.
 
 1. Create a new conda environment
    ```sh
-   conda create --name RAG_LLM_Streamlit python=3.11
+   conda create --name RAG_Streamlit python=3.11
    ```
    
 2. Activate environment
    ```sh
-   conda activate RAG_LLM_Streamlit
+   conda activate RAG_Streamlit
    ```
 
 3. Clone the repo
    ```sh
-   git clone https://github.com/Imding1211/RAG_LLM_Streamlit.git
+   git clone https://github.com/Imding1211/RAG_Streamlit.git
    ```
    
 4. Change directory
@@ -104,6 +104,6 @@ To get a local copy up and running, follow these simple steps.
 
 Chi Heng Ting - a0986772199@gmail.com
 
-Project Link - https://github.com/Imding1211/RAG_LLM_Streamlit
+Project Link - https://github.com/Imding1211/RAG_Streamlit
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
