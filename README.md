@@ -51,7 +51,7 @@ To get a local copy up and running, follow these simple steps.
    
 4. Change directory
    ```sh
-   cd RAG_LLM_Streamlit
+   cd RAG_Streamlit
    ```
    
 5. Install the required Python packages
